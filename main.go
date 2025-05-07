@@ -106,11 +106,22 @@ func printFile(r io.Reader, lineNum *int){
 		if flagE{
 			fmt.Print("$")
 		}
-	}
-	fmt.Print("\n")
+		fmt.Print("\n")
+	}	
 }
 
 // To display non printable characters with corresponding ASCII
 func printCaretNotation(c rune) string{
-	
+	switch {
+	case c < 32:
+		return fmt.Sprintf("^%c", c+'@') // ^@ to ^_
+	case c == 127:
+		return "^?"
+	case c > 127 && c < 160:
+		return fmt.Sprintf("M-^%c", c-128+'@')
+	case c >= 160 && c <= 255:
+		return fmt.Sprintf("M-%c", c-128)
+	default:
+		return string(c)
+	}
 }

@@ -1,0 +1,10 @@
+This is a line with spaces.    
+This	is	a	line	with	tabs.
+Line	with	mixed	 spaces	and	tabs.   
+Tab	at	start.
+    Spaces at start.
+End with tab.	
+Binary: 
+DEL: 
+Meta Control: 
+Meta Extended: ¡¢£¤¥¦

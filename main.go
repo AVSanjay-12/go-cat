@@ -96,7 +96,7 @@ func printFile(r io.Reader, lineNum *int){
 			switch{
 			case c == '\t' && flagT:
 				fmt.Print("^I")
-			case flagV && (!unicode.IsPrint(c) && c != '\t'):
+			case flagV && ((!unicode.IsPrint(c) && c != '\t') || c >=160 && c<=255):	// Check whether the char is unprintable or meta extended
 				fmt.Print(printCaretNotation(c))
 			default:
 				fmt.Print(string(c))	
@@ -111,17 +111,17 @@ func printFile(r io.Reader, lineNum *int){
 }
 
 // To display non printable characters with corresponding ASCII
-func printCaretNotation(c rune) string{
+func printCaretNotation(c rune) string {
 	switch {
 	case c < 32:
-		return fmt.Sprintf("^%c", c+'@') // ^@ to ^_
+		return fmt.Sprintf("^%c", c+'@') 
 	case c == 127:
 		return "^?"
-	case c > 127 && c < 160:
-		return fmt.Sprintf("M-^%c", c-128+'@')
+	case c >= 128 && c <= 159:
+		return fmt.Sprintf("M-^%c", c-128+'@') 
 	case c >= 160 && c <= 255:
-		return fmt.Sprintf("M-%c", c-128)
+		return fmt.Sprintf("M-%c", c-128) 
 	default:
-		return string(c)
+		return "O"
 	}
 }

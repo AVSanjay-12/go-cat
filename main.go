@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
+	"unicode"
 )
 
 // Initialize flag variables
@@ -59,7 +61,7 @@ func main() {
 	for _, fname := range files{
 		var r io.Reader
 		if fname == "-"{
-			r := os.Stdin
+			r = os.Stdin
 		} else{
 			file, err := os.Open(fname)
 			if err != nil{
@@ -79,5 +81,36 @@ func main() {
 func printFile(r io.Reader, lineNum *int){
 	scanner := bufio.NewScanner(r)
 
+	// Line by line
+	for scanner.Scan(){
+		line := scanner.Text()
+		printLineNum := flagN || (flagB && strings.TrimSpace(line) != "")
+		
+		if printLineNum{
+			*lineNum++
+			fmt.Printf("%6d\t", *lineNum)
+		}
 
+		// go through the line
+		for _, c := range line{
+			switch{
+			case c == '\t' && flagT:
+				fmt.Print("^I")
+			case flagV && (!unicode.IsPrint(c) && c != '\t'):
+				fmt.Print(printCaretNotation(c))
+			default:
+				fmt.Print(string(c))	
+			}
+		}
+
+		if flagE{
+			fmt.Print("$")
+		}
+	}
+	fmt.Print("\n")
+}
+
+// To display non printable characters with corresponding ASCII
+func printCaretNotation(c rune) string{
+	
 }

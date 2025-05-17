@@ -68,34 +68,49 @@ func main() {
 	processFiles(args)
 }
 
-// Update a single file
-func updateSingleFile(operator string, outputFileName string){
-	var file *os.File
-	var err error
-
-	switch operator{
+// Helper function to open the output file based on the operator
+func openOutputFile(operator, outputFileName string) (*os.File, error) {
+	switch operator {
 	case ">":
-		file, err = os.Create(outputFileName)		// overwrite mode
+		return os.Create(outputFileName) // Overwrite mode
 	case ">>":
-		file, err = os.OpenFile(outputFileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)		// append mode
+		return os.OpenFile(outputFileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644) // Append mode
 	default:
-		fmt.Println("Invalid operator. Use > for overwrite or >> for append.")
-		return
+		return nil, fmt.Errorf("invalid operator %s, use > for overwrite or >> for append", operator)
 	}
+}
+
+// Update a single file
+func updateSingleFile(operator, outputFileName string) {
+	// Open the output file
+	file, err := openOutputFile(operator, outputFileName)
 	if err != nil {
-		fmt.Printf("Error opening output file %s: %v\n", outputFileName, err)
+		fmt.Fprintf(os.Stderr, "Error opening output file %s: %v\n", outputFileName, err)
 		return
 	}
 	defer file.Close()
 
-	// Prompt the user for input
-	fmt.Println("Enter text (Ctrl+D to stop):")
-
-	_, err = file.ReadFrom(os.Stdin)
-	if err != nil{
-		fmt.Printf("Error writing to the file %s: %v", outputFileName, err)
+	// Read from stdin
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		line := scanner.Text() + "\n"
+		_, err := file.WriteString(line)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error writing to the file %s: %v\n", outputFileName, err)
+			return
+		}
 	}
+
+	// Check for scanning errors
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error scanning stdin: %v\n", err)
+		return
+	}
+
 }
+
+
+
 
 // Merge multiple files
 func mergeFiles(operator string, outputFileName string, inputFiles []string){

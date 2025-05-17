@@ -50,8 +50,59 @@ func main() {
 		flagT = true
 	}
 
-	// Getting files from cmd line
-	files := flag.Args()
+	// Getting args from cmd line
+	args := flag.Args()
+	if len(args) > 0 && (args[0] == ">" || args[0] == ">>"){
+		operator := args[0]
+		outputFileName := args[1]
+		inputFiles := args[2:]
+		if len(args) < 3{
+			updateSingleFile(operator, outputFileName)
+			return
+		} else if len(args) > 2{
+			mergeFiles(operator, outputFileName, inputFiles)
+			return
+		}
+	}
+
+	processFiles(args)
+}
+
+// Update a single file
+func updateSingleFile(operator string, outputFileName string){
+	var file *os.File
+	var err error
+
+	switch operator{
+	case ">":
+		file, err = os.Create(outputFileName)		// overwrite mode
+	case ">>":
+		file, err = os.OpenFile(outputFileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)		// append mode
+	default:
+		fmt.Println("Invalid operator. Use > for overwrite or >> for append.")
+		return
+	}
+	if err != nil {
+		fmt.Printf("Error opening output file %s: %v\n", outputFileName, err)
+		return
+	}
+	defer file.Close()
+
+	// Prompt the user for input
+	fmt.Println("Enter text (Ctrl+D to stop):")
+
+	_, err = file.ReadFrom(os.Stdin)
+	if err != nil{
+		fmt.Printf("Error writing to the file %s: %v", outputFileName, err)
+	}
+}
+
+// Merge multiple files
+func mergeFiles(operator string, outputFileName string, inputFiles []string){
+
+}
+
+func processFiles(files []string){
 	if len(files) == 0{
 		files = []string{"-"}
 	}
